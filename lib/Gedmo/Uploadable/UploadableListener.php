@@ -75,6 +75,13 @@ class UploadableListener extends MappedEventSubscriber
      */
     private $fileInfoObjects = array();
 
+    /**
+     * Array of files that have been uploaded
+     *
+     * @var array
+     */
+    private $uploadedFiles = array();
+
     public function __construct(MimeTypeGuesserInterface $mimeTypeGuesser = null)
     {
         $this->mimeTypeGuesser = $mimeTypeGuesser ? $mimeTypeGuesser : new MimeTypeGuesser();
@@ -182,13 +189,16 @@ class UploadableListener extends MappedEventSubscriber
     {
         if (!empty($this->pendingFileRemovals)) {
             foreach ($this->pendingFileRemovals as $file) {
-                $this->removeFile($file);
+                if (!in_array($file, $this->uploadedFiles, true)) {
+                    $this->removeFile($file);
+                }
             }
 
             $this->pendingFileRemovals = array();
         }
 
         $this->fileInfoObjects = array();
+        $this->uploadedFiles = array();
     }
 
     /**
@@ -601,6 +611,8 @@ class UploadableListener extends MappedEventSubscriber
                 $path
             ));
         }
+
+        $this->uploadedFiles[] = $info['filePath'];
 
         return $info;
     }
